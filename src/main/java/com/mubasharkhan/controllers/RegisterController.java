@@ -2,6 +2,8 @@ package com.mubasharkhan.controllers;
 
 import com.mubasharkhan.config.MysqlJDBCConfig;
 import com.mubasharkhan.config.ThymeleafConfig;
+import com.mubasharkhan.dao.UserDao;
+import com.mubasharkhan.models.UserModel;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -12,40 +14,54 @@ import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 
-@WebServlet(name = "LoginController", value = "/login")
-public class LoginController extends HttpServlet {
+@WebServlet(name = "RegisterController", value = "/register")
+public class RegisterController extends HttpServlet {
     private TemplateEngine templateEngine;
     private JakartaServletWebApplication application;
+
+    private UserDao userDao;
+
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         application = JakartaServletWebApplication.buildApplication(config.getServletContext());
         templateEngine = ThymeleafConfig.getTemplateEngine(application);
+        userDao = new UserDao();
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         response.setHeader("Pragma", "no-cache");
         response.setHeader("Cache-Control", "no-cache");
         response.setDateHeader("Expires", 0);
 
-        try {
-            Connection connection = MysqlJDBCConfig.getConnection();
-            if(connection != null) {
-                System.out.println("Connection established");
-            }
-        } catch (SQLException e) {
-            System.out.println("Connection failed");
-        }
 
         final IWebExchange webExchange = application.buildExchange(request, response);
         WebContext ctx = new WebContext(webExchange, webExchange.getLocale());
-        ctx.setVariable("today", Calendar.getInstance());
-        ctx.setVariable("message", "Hello hh, Thymeleaf!");
-        templateEngine.process("login", ctx, response.getWriter());
+
+        String success = request.getParameter("success");
+        if(success != null) {
+            ctx.setVariable("success", success);
+        }
+
+        String error = request.getParameter("error");
+        if(error != null) {
+            ctx.setVariable("error",error);
+        }
+        templateEngine.process("register", ctx, response.getWriter());
     }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+
+    }
+
+
 }
